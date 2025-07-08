@@ -17,6 +17,11 @@ extern u64 rook_relevant_blockers[64];
 void init_attack_tables();
 
 // Real move generation function
+int is_square_attacked(int square, int side, const Board* board);
+
+void generate_all_pawn_moves(const Board* board, MoveList* move_list);
 void generate_all_knight_moves(const Board* board, MoveList* move_list);
+void generate_all_bishop_moves(const Board* board, MoveList* move_list);
+void generate_all_king_moves(const Board* board, MoveList* move_list);
 
 #endif // MOVEGEN_H
