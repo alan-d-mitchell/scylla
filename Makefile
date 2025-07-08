@@ -5,61 +5,58 @@
 # Compiler to use
 CC = gcc
 
-# Compiler flags:
-# -Wall -Wextra: Enable all common warnings
-# -O2: Standard optimization level
-# -g: Include debugging information
-# -Isrc: Tell the compiler to look for headers in the 'src' directory
+# Compiler flags
 CFLAGS = -Wall -Wextra -O2 -g -Isrc
 
-# Directories
+# --- Directories ---
+# NEW: Define the output directory for binaries
+BIN_DIR = bin
 SRC_DIR = src
 TEST_DIR = tests
 
+# --- File Paths ---
+
 # Source files for the main program
-# Note: We now specify the directory for each file
 SRCS = scylla.c $(SRC_DIR)/bitboard.c
 
-# Source files for the test suite
-TEST_SRCS = $(TEST_DIR)/bitboard_test.c $(SRC_DIR)/bitboard.c
+# Source files for the move generation test suite
+MOVEGEN_TEST_SRCS = $(TEST_DIR)/movegen_test.c $(SRC_DIR)/movegen.c $(SRC_DIR)/bitboard.c
 
-MOVEGEN_TEST_TARGET = run_movegen_tests
-MOVEGEN_TEST_SRCS = tests/movegen_test.c src/movegen.c src/bitboard.c
-
-# Name of the final executable for the main program
-TARGET = scylla
-
-# Name of the final executable for the test suite
-TEST_TARGET = run_tests
+# --- Target Executables ---
+# UPDATED: Prepend the binary directory path to all targets
+TARGET = $(BIN_DIR)/scylla
+MOVEGEN_TEST_TARGET = $(BIN_DIR)/run_movegen_tests
 
 
 # --- Rules ---
 
-# The default rule, executed when you just type "make"
+# The default rule, builds the main program
 all: $(TARGET)
 
 # Rule to build the main program executable
-$(TARGET): $(SRCS)
+# UPDATED: It now depends on the bin directory existing
+$(TARGET): $(SRCS) | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS)
 
-# Rule to build the test suite executable
-$(TEST_TARGET): $(TEST_SRCS)
-	$(CC) $(CFLAGS) -o $(TEST_TARGET) $(TEST_SRCS)
-
-# A special rule to run the tests.
-test: $(TEST_TARGET)
-	./$(TEST_TARGET)
-
-$(MOVEGEN_TEST_TARGET): $(MOVEGEN_TEST_SRCS)
+# Rule to build the move generation test suite
+# UPDATED: It also depends on the bin directory existing
+$(MOVEGEN_TEST_TARGET): $(MOVEGEN_TEST_SRCS) | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $(MOVEGEN_TEST_TARGET) $(MOVEGEN_TEST_SRCS)
 
+# NEW: A rule to create the bin directory.
+# The '-p' flag means it won't error if the directory already exists.
+# This is an "order-only prerequisite", so it only runs if the directory is missing.
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
+# Rule to run the tests
 movegen_test: $(MOVEGEN_TEST_TARGET)
 	./$(MOVEGEN_TEST_TARGET)
 
-
 # Rule to clean up all compiled files
+# UPDATED: Now removes the entire bin directory
 clean:
-	rm -f $(TARGET) $(TEST_TARGET) $(MOVEGEN_TEST_TARGET)
+	rm -rf $(BIN_DIR)
 
 # Phony targets are rules that don't produce a file with the same name.
-.PHONY: all test clean
+.PHONY: all movegen_test clean
