@@ -43,62 +43,109 @@ void print_move_list(const MoveList* move_list) {
     }
 }
 
-void pawn_move_test() {
-    init_attack_tables();
+ // The w after the main string with slashes can be changed to a b in order to see the black moves
+ // Most tests use the kiwipete fen string
 
-    const char* fen = "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/8/P1P1P1PP/RNBQKBNR w KQkq e6 0 1";
+ // Should return 29 moves for white and 16 for black
+void pawn_promotion_test() {
+    const char* fen = "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/8/P1P1P1PP/RNBQKBNR b KQkq e6 0 1"; // This string demonstrates possible moves for pawn promotions
     Board board;
     parse_fen(&board, fen);
 
     MoveList move_list = { .count = 0 };
     generate_all_pawn_moves(&board, &move_list);
 
-    printf("Testing pawn moves from FEN: %s\n", fen);
+    printf("Testing pawn promotion moves from FEN: %s\n", fen);
     print_move_list(&move_list);
 
 }
 
-void knight_move_test() {
-    init_attack_tables();
+// Should return 8 moves for both
+void pawn_move_test() {
+    const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
+    Board board;
+    parse_fen(&board, fen);
 
-    // the w after the main string with slashes can be changed to a b in order to see the black moves
+    MoveList move_list = { .count = 0};
+    generate_all_pawn_moves(&board, &move_list);
+
+    printf("Testing pawn moves from FEN: %s\n", fen);
+    print_move_list(&move_list);
+}
+
+// Should return 11 for white and 8 for black
+void knight_move_test() {
     const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     Board board;
     parse_fen(&board, fen);
 
-    // Create an empty move list
     MoveList move_list = { .count = 0 };
 
-    // Generate the knight moves for the position (it's white's turn)
     generate_all_knight_moves(&board, &move_list);
 
-    // Print the results
     printf("Testing all knight moves from FEN: %s\n", fen);
     print_move_list(&move_list);
 }
 
+// Should return 11 for white and 6 for black
 void bishop_move_test() {
-    // init_attack_tables();
-
-    // A position with interesting bishop moves for white
     const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     Board board;
     parse_fen(&board, fen);
 
     MoveList move_list = { .count = 0 };
 
-    // Generate only the bishop moves
     generate_all_bishop_moves(&board, &move_list);
 
     printf("Testing bishop moves from FEN: %s\n", fen);
     print_move_list(&move_list);
 }
 
-void king_move_test() {
-    init_attack_tables();
+// Should return 5 for both
+void rook_move_test() {
+    const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    Board board;
+    parse_fen(&board, fen);
 
+    MoveList move_list = { .count = 0};
+
+    generate_all_rook_moves(&board, &move_list);
+
+    printf("Testing rook moves from FEN: %s\n", fen);
+    print_move_list(&move_list);
+}
+
+// Should return 9 for white and 4 for black
+void queen_move_test() {
+    const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    Board board;
+    parse_fen(&board, fen);
+
+    MoveList move_list = { .count = 0};
+
+    generate_all_queen_moves(&board, &move_list);
+
+    printf("Testing queen moves from FEN: %s\n", fen);
+    print_move_list(&move_list);
+}
+
+// Should return 7 moves for white and 
+void king_castling_test() {
     // FEN designed for testing castling
     const char* fen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
+    Board board;
+    parse_fen(&board, fen);
+
+    MoveList move_list = { .count = 0 };
+    generate_all_king_moves(&board, &move_list);
+
+    printf("Testing castling for king moves from FEN: %s\n", fen);
+    print_move_list(&move_list);
+}
+
+// Should return 4 moves for white
+void king_move_test() {
+    const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     Board board;
     parse_fen(&board, fen);
 
@@ -112,10 +159,14 @@ void king_move_test() {
 int main() {
     init_attack_tables();
 
+    pawn_promotion_test();
     pawn_move_test();
     knight_move_test();
     bishop_move_test();
+    rook_move_test();
+    queen_move_test();
     king_move_test();
+    king_castling_test();
 
     return 0;
 }

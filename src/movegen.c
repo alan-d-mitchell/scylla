@@ -9,12 +9,12 @@ u64 pawn_attacks[2][64];
 u64 knight_attacks[64];
 u64 king_attacks[64];
 
-// --- Rook-related data ---
-u64 rook_relevant_blockers[64];
-
-// --- "Fancy" Magic Bitboard Data for Bishops ---
+// "Fancy" Magic Bitboard Data for Bishops and Rooks
 SMagic mBishopTbl[64];
-u64 bishop_attack_table[5248]; // Main attack table for all bishop moves
+u64 bishop_attack_table[5248];
+
+SMagic mRookTbl[64];
+u64 rook_attack_table[102400];
 
 // --- Constant Masks ---
 const u64 not_a_file = 18374403900871474942ULL;
@@ -45,6 +45,7 @@ unsigned int rand_prng() {
 u64 rand64_prng() {
     u64 r1 = (u64)rand_prng();
     u64 r2 = (u64)rand_prng();
+
     return r1 | (r2 << 32);
 }
 
@@ -56,10 +57,12 @@ u64 sparse_rand_u64() {
 // Counts the number of set bits in a bitboard
 int popcount(u64 bb) {
     int count = 0;
+
     while (bb) {
         bb &= bb - 1;
         count++;
     }
+
     return count;
 }
 
@@ -69,6 +72,7 @@ int popcount(u64 bb) {
 u64 generate_bishop_attacks(int square, u64 blockers) {
     u64 attacks = 0ULL;
     int r, f, tr = square / 8, tf = square % 8;
+
     for (r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++) { attacks |= (1ULL << (r * 8 + f)); if ((1ULL << (r * 8 + f)) & blockers) break; }
     for (r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--) { attacks |= (1ULL << (r * 8 + f)); if ((1ULL << (r * 8 + f)) & blockers) break; }
     for (r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++) { attacks |= (1ULL << (r * 8 + f)); if ((1ULL << (r * 8 + f)) & blockers) break; }
@@ -77,9 +81,36 @@ u64 generate_bishop_attacks(int square, u64 blockers) {
     return attacks;
 }
 
+// Generates rook attacks for a given square and blocker config
+u64 generate_rook_attacks(int square, u64 blockers) {
+    u64 attacks = 0ULL;
+    int r, f, tr = square / 8, tf = square % 8;
+
+    for (r = tr + 1; r <= 7; r++) { attacks |= (1ULL << (r * 8 + tf)); if ((1ULL << (r * 8 + tf)) & blockers) break; }
+    for (r = tr - 1; r >= 0; r--) { attacks |= (1ULL << (r * 8 + tf)); if ((1ULL << (r * 8 + tf)) & blockers) break; }
+    for (f = tf + 1; f <= 7; f++) { attacks |= (1ULL << (tr * 8 + f)); if ((1ULL << (tr * 8 + f)) & blockers) break; }
+    for (f = tf - 1; f >= 0; f--) { attacks |= (1ULL << (tr * 8 + f)); if ((1ULL << (tr * 8 + f)) & blockers) break; }
+
+    return attacks;
+}
+
 // Generates the blocker mask for a bishop on a given square.
 u64 generate_bishop_blocker_mask(int square) {
     return generate_bishop_attacks(square, 0ULL) & ~board_edges;
+}
+
+// Generates the blocker mask for a rook on a given square
+u64 generate_rook_blocker_mask(int square) {
+    u64 attacks = 0ULL;
+    int r, f, tr = square / 8, tf = square % 8;
+
+    // Only include the "inner" squares, not the very edges of the board
+    for (r = tr + 1; r < 7; r++) attacks |= (1ULL << (r * 8 + tf));
+    for (r = tr - 1; r > 0; r--) attacks |= (1ULL << (r * 8 + tf));
+    for (f = tf + 1; f < 7; f++) attacks |= (1ULL << (tr * 8 + f));
+    for (f = tf - 1; f > 0; f--) attacks |= (1ULL << (tr * 8 + f));
+
+    return attacks;
 }
 
 // Magic Finding Initialization for Bishops
@@ -142,18 +173,66 @@ void init_magic_bishop_attacks() {
     }
 }
 
+void init_magic_rook_attacks() {
+    u64* attack_table_ptr = rook_attack_table;
+    int seeds[] = {72120, 44560, 54343, 38998, 5731, 95205, 104912, 17020}; // Changed first seed slightly
+    
+    for (int s = 0; s < 64; s++) {
+        int epoch[4096] = {0};
+        int cnt = 0;
 
-// --- Unchanged Initialization Functions ---
+        mRookTbl[s].mask = generate_rook_blocker_mask(s);
+        mRookTbl[s].ptr = attack_table_ptr;
+        
+        int relevant_bits = popcount(mRookTbl[s].mask);
+        mRookTbl[s].shift = 64 - relevant_bits;
+        int size = 1 << relevant_bits;
+        
+        u64 occupancy[4096];
+        u64 reference[4096];
+        
+        u64 b = 0;
+        for(int i = 0; i < size; i++) {
+            occupancy[i] = b;
+            reference[i] = generate_rook_attacks(s, b);
+            b = (b - mRookTbl[s].mask) & mRookTbl[s].mask;
+        }
 
+        seed_prng(seeds[s % 8]);
+        
+        while (1) {
+            mRookTbl[s].magic = sparse_rand_u64();
+            if (popcount((mRookTbl[s].magic * mRookTbl[s].mask) >> 56) < 6) continue;
+            
+            ++cnt;
+            int i;
+            for (i = 0; i < size; ++i) {
+                unsigned idx = (occupancy[i] * mRookTbl[s].magic) >> mRookTbl[s].shift;
+                if (epoch[idx] < cnt) {
+                    epoch[idx] = cnt;
+                    mRookTbl[s].ptr[idx] = reference[i];
+                } else if (mRookTbl[s].ptr[idx] != reference[i]) {
+                    break;
+                }
+            }
+            if (i == size) break;
+        }
+        attack_table_ptr += size;
+    }
+}
+
+// Attack generation functions
 void generate_pawn_attacks() {
     for (int square = 0; square < 64; square++) {
         u64 start_bitboard = 1ULL << square;
         u64 white_attacks = 0ULL;
         u64 black_attacks = 0ULL;
+
         if (((start_bitboard << 9) & not_a_file) != 0) white_attacks |= (start_bitboard << 9);
         if (((start_bitboard << 7) & not_h_file) != 0) white_attacks |= (start_bitboard << 7);
         if (((start_bitboard >> 9) & not_h_file) != 0) black_attacks |= (start_bitboard >> 9);
         if (((start_bitboard >> 7) & not_a_file) != 0) black_attacks |= (start_bitboard >> 7);
+
         pawn_attacks[0][square] = white_attacks;
         pawn_attacks[1][square] = black_attacks;
     }
@@ -163,6 +242,7 @@ void generate_knight_attacks() {
     for (int square = 0; square < 64; square++) {
         u64 start_bitboard = 1ULL << square;
         u64 attacks = 0ULL;
+
         if (((start_bitboard << 17) & not_a_file) != 0) attacks |= (start_bitboard << 17);
         if (((start_bitboard << 15) & not_h_file) != 0) attacks |= (start_bitboard << 15);
         if (((start_bitboard << 10) & not_ab_file) != 0) attacks |= (start_bitboard << 10);
@@ -171,6 +251,7 @@ void generate_knight_attacks() {
         if (((start_bitboard >> 15) & not_a_file) != 0) attacks |= (start_bitboard >> 15);
         if (((start_bitboard >> 10) & not_hg_file) != 0) attacks |= (start_bitboard >> 10);
         if (((start_bitboard >> 6) & not_ab_file) != 0) attacks |= (start_bitboard >> 6);
+
         knight_attacks[square] = attacks;
     }
 }
@@ -179,6 +260,7 @@ void generate_king_attacks() {
     for (int square = 0; square < 64; square++) {
         u64 start_bitboard = 1ULL << square;
         u64 attacks = 0ULL;
+
         if (((start_bitboard << 9) & not_a_file) != 0) attacks |= (start_bitboard << 9);
         if (((start_bitboard << 8)) != 0) attacks |= (start_bitboard << 8);
         if (((start_bitboard << 7) & not_h_file) != 0) attacks |= (start_bitboard << 7);
@@ -187,59 +269,104 @@ void generate_king_attacks() {
         if (((start_bitboard >> 8)) != 0) attacks |= (start_bitboard >> 8);
         if (((start_bitboard >> 7) & not_a_file) != 0) attacks |= (start_bitboard >> 7);
         if (((start_bitboard >> 1) & not_h_file) != 0) attacks |= (start_bitboard >> 1);
+
         king_attacks[square] = attacks;
     }
 }
 
-u64 generate_rook_attacks_empty_board(int square) {
-    u64 attacks = 0ULL;
-    int r, f, tr = square / 8, tf = square % 8;
-    for (r = tr + 1; r <= 7; r++) attacks |= (1ULL << (r * 8 + tf));
-    for (r = tr - 1; r >= 0; r--) attacks |= (1ULL << (r * 8 + tf));
-    for (f = tf + 1; f <= 7; f++) attacks |= (1ULL << (tr * 8 + f));
-    for (f = tf - 1; f >= 0; f--) attacks |= (1ULL << (tr * 8 + f));
-    return attacks;
-}
-
-void generate_rook_masks() {
-    for (int square = 0; square < 64; square++) {
-        rook_relevant_blockers[square] = generate_rook_attacks_empty_board(square);
-    }
-}
-
-// --- Main Initialization Entry Point ---
-void init_attack_tables() {
-    generate_pawn_attacks();
-    generate_knight_attacks();
-    generate_king_attacks();
-    generate_rook_masks();
-    init_magic_bishop_attacks(); // The new, robust bishop initialization
-}
-
 // --- Lookup and Move Generation ---
-
 u64 bishopAttacks(u64 occ, int sq) {
    occ &= mBishopTbl[sq].mask;
    occ *= mBishopTbl[sq].magic;
    occ >>= mBishopTbl[sq].shift;
+
    return mBishopTbl[sq].ptr[occ];
+}
+
+u64 rookAttacks(u64 occ, int sq) {
+   occ &= mRookTbl[sq].mask;
+   occ *= mRookTbl[sq].magic;
+   occ >>= mRookTbl[sq].shift;
+
+   return mRookTbl[sq].ptr[occ];
 }
 
 void generate_all_bishop_moves(const Board* board, MoveList* move_list) {
     int side = board->side_to_move;
-    u64 friendly_pieces = board->occupancies[side];
+    u64 friendly_pieces = board->occupancies[side];// Rook attack check would go here...
     u64 bishops = board->piece_bitboards[side == WHITE ? B : b];
 
     while (bishops) {
         int from_square = __builtin_ctzll(bishops);
         u64 attacks = bishopAttacks(board->occupancies[2], from_square);
         u64 valid_moves = attacks & ~friendly_pieces;
+
         while (valid_moves) {
             int to_square = __builtin_ctzll(valid_moves);
             move_list->moves[move_list->count++] = (Move){ .from = from_square, .to = to_square, .piece = (side == WHITE ? B : b), .is_capture = (board->occupancies[!side] & (1ULL << to_square)) ? 1 : 0 };
+           
             valid_moves &= valid_moves - 1;
         }
+
         bishops &= bishops - 1;
+    }
+}
+
+void generate_all_rook_moves(const Board* board, MoveList* move_list) {
+    int side = board->side_to_move;
+    u64 friendly_pieces = board->occupancies[side];
+    // Get the bitboard for the rooks of the current side
+    u64 rooks = board->piece_bitboards[side == WHITE ? R : r];
+
+    // Loop through each rook
+    while (rooks) {
+        int from_square = __builtin_ctzll(rooks);
+        // Get the attacks for that square using the rook magic lookup
+        u64 attacks = rookAttacks(board->occupancies[2], from_square);
+        // Filter out moves that land on friendly pieces
+        u64 valid_moves = attacks & ~friendly_pieces;
+
+        // Loop through the valid destination squares
+        while (valid_moves) {
+            int to_square = __builtin_ctzll(valid_moves);
+            // Create and add the move to the move list
+            move_list->moves[move_list->count++] = (Move){ .from = from_square, .to = to_square, .piece = (side == WHITE ? R : r), .is_capture = (board->occupancies[!side] & (1ULL << to_square)) ? 1 : 0 };
+            // Clear the 'to' bit to continue the loop
+            valid_moves &= valid_moves - 1;
+        }
+        // Clear the 'from' bit to continue the outer loop
+        rooks &= rooks - 1;
+    }
+}
+
+void generate_all_queen_moves(const Board* board, MoveList* move_list) {
+    int side = board->side_to_move;
+    u64 friendly_pieces = board->occupancies[side];
+    // Get the bitboard for the queens of the current side
+    u64 queens = board->piece_bitboards[side == WHITE ? Q : q];
+
+    // Loop through each queen
+    while (queens) {
+        int from_square = __builtin_ctzll(queens);
+
+        // Get bishop and rook attacks from the same square and combine them
+        u64 bishop_attacks = bishopAttacks(board->occupancies[2], from_square);
+        u64 rook_attacks = rookAttacks(board->occupancies[2], from_square);
+        u64 attacks = bishop_attacks | rook_attacks;
+
+        // Filter out moves that land on friendly pieces
+        u64 valid_moves = attacks & ~friendly_pieces;
+
+        // Loop through the valid destination squares
+        while (valid_moves) {
+            int to_square = __builtin_ctzll(valid_moves);
+            // Create and add the move to the move list
+            move_list->moves[move_list->count++] = (Move){ .from = from_square, .to = to_square, .piece = (side == WHITE ? Q : q), .is_capture = (board->occupancies[!side] & (1ULL << to_square)) ? 1 : 0 };
+            // Clear the 'to' bit to continue the loop
+            valid_moves &= valid_moves - 1;
+        }
+        // Clear the 'from' bit to continue the outer loop
+        queens &= queens - 1;
     }
 }
 
@@ -248,7 +375,8 @@ int is_square_attacked(int square, int side, const Board* board) {
     if ((knight_attacks[square] & board->piece_bitboards[side == WHITE ? N : n])) return 1;
     if ((king_attacks[square] & board->piece_bitboards[side == WHITE ? K : k])) return 1;
     if (bishopAttacks(board->occupancies[2], square) & (board->piece_bitboards[side == WHITE ? B : b] | board->piece_bitboards[side == WHITE ? Q : q])) return 1;
-    // Rook attack check would go here...
+    if (rookAttacks(board->occupancies[2], square) & (board->piece_bitboards[side == WHITE ? R : r] | board->piece_bitboards[side == WHITE ? Q : q])) return 1;
+    
     return 0;
 }
 
@@ -371,4 +499,13 @@ void generate_all_king_moves(const Board* board, MoveList* move_list) {
             }
         }
     }
+}
+
+// --- Main Initialization Entry Point ---
+void init_attack_tables() {
+    generate_pawn_attacks();
+    generate_knight_attacks();
+    generate_king_attacks();
+    init_magic_bishop_attacks();
+    init_magic_rook_attacks();
 }
