@@ -5,6 +5,9 @@
 #include <stdio.h>
 
 #include "bitboard.h"
+#include "defs.h"
+#include "board.h"
+#include "movegen.h"
 
 int main() {
 
