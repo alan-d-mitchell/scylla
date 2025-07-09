@@ -57,13 +57,13 @@ u64 bishop_attack_table[5248];
 u64* bishop_attacks[64];
 
 const int bishop_relevant_bits[64] = {
-    6, 5, 5, 5, 5, 5, 5, 6, 
-    5, 5, 5, 5, 5, 5, 5, 5, 
-    5, 5, 7, 7, 7, 7, 5, 5, 
-    5, 5, 7, 9, 9, 7, 5, 5, 
-    5, 5, 7, 9, 9, 7, 5, 5, 
-    5, 5, 7, 7, 7, 7, 5, 5, 
-    5, 5, 5, 5, 5, 5, 5, 5, 
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
     6, 5, 5, 5, 5, 5, 5, 6
 };
 
@@ -152,7 +152,7 @@ u64 generate_bishop_attacks(int square, u64 blockers) {
 
 void generate_bishop_masks() {
     for (int square = 0; square < 64; square++) {
-        bishop_relevant_blockers[square] = generate_bishop_attacks(square, 0ULL);
+        bishop_relevant_blockers[square] = generate_bishop_attacks(square, 0ULL) & ~board_edges;
     }
 }
 
@@ -379,16 +379,6 @@ void generate_all_bishop_moves(const Board* board, MoveList* move_list) {
         int from_square = __builtin_ctzll(bishops);
         u64 attacks = get_bishop_attacks(from_square, board->occupancies[2]);
         u64 valid_moves = attacks & ~friendly_pieces;
-
-        // --- Start Full Debug ---
-        printf("\n---------------------\n");
-        printf("Checking Bishop at square: %d\n", from_square);
-        printf("Friendly Pieces Bitboard: %llu\n", friendly_pieces);
-        printf("All Pieces Bitboard (used for lookup): %llu\n", board->occupancies[2]);
-        printf("Generated Attacks Bitboard: %llu\n", attacks);
-        printf("Final Valid Moves Bitboard: %llu\n", valid_moves);
-        printf("---------------------\n");
-        // --- End Full Debug ---
 
         while (valid_moves) {
             int to_square = __builtin_ctzll(valid_moves);

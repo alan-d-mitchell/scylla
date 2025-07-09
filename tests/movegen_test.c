@@ -78,7 +78,7 @@ void knight_move_test() {
 }
 
 void bishop_move_test() {
-    init_magic_bishop_attacks();
+    init_attack_tables();
 
     // A position with interesting bishop moves for white
     const char* fen = "rnbqkbnr/p1pp1ppp/1p6/4p3/8/1P4P1/PBPPPPBP/RN1QK1NR w KQkq - 0 1";
