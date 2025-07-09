@@ -17,7 +17,7 @@ TEST_DIR = tests
 # --- File Paths ---
 
 # Source files for the main program
-SRCS = scylla.c $(SRC_DIR)/bitboard.c
+SRCS = scylla.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c $(SRC_DIR)/movegen.c
 
 # Source files for the move generation test suite
 MOVEGEN_TEST_SRCS = $(TEST_DIR)/movegen_test.c $(SRC_DIR)/movegen.c $(SRC_DIR)/bitboard.c
