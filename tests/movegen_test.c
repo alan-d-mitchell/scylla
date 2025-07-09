@@ -78,14 +78,14 @@ void knight_move_test() {
 }
 
 void bishop_move_test() {
-    init_attack_tables();
+    // init_attack_tables();
 
     // A position with interesting bishop moves for white
-    const char* fen = "rnbqkbnr/p1pp1ppp/1p6/4p3/8/1P4P1/PBPPPPBP/RN1QK1NR w KQkq - 0 1";
+    const char* fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     Board board;
     parse_fen(&board, fen);
 
-    MoveList move_list = { .count = 0};
+    MoveList move_list = { .count = 0 };
 
     // Generate only the bishop moves
     generate_all_bishop_moves(&board, &move_list);
