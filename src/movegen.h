@@ -4,22 +4,33 @@
 #include "bitboard.h"
 #include "move.h"
 
+// --- "Fancy" Magic Bitboard Struct ---
+typedef struct {
+    u64* ptr;      // Pointer to the attack table for this square
+    u64 mask;     // Mask for relevant blocker squares
+    u64 magic;    // The 64-bit magic number
+    int shift;    // The right-shift value
+} SMagic;
+
 // --- Pre-computed Attack Tables ---
 extern u64 pawn_attacks[2][64];
 extern u64 knight_attacks[64];
 extern u64 king_attacks[64];
-extern u64 bishop_relevant_blockers[64];
-extern u64 rook_relevant_blockers[64];
+
+// Declaration for the bishop magic table
+extern SMagic mBishopTbl[64];
+
 
 // --- Function Declarations (Prototypes) ---
 
 // Initialization function
 void init_attack_tables();
-void init_magic_bishop_attacks();
 
-// Real move generation function
+// Get bishop attacks using the "fancy" magic bitboard approach
+u64 bishopAttacks(u64 occ, int sq);
+
+// Real move generation functions
 int is_square_attacked(int square, int side, const Board* board);
-
 void generate_all_pawn_moves(const Board* board, MoveList* move_list);
 void generate_all_knight_moves(const Board* board, MoveList* move_list);
 void generate_all_bishop_moves(const Board* board, MoveList* move_list);
