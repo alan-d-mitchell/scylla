@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "movegen.h"
-#include "move.h"
+#include "defs.h"
 
 void print_test(const char* title, u64 bitboard) {
     printf("--- %s ---\n", title);

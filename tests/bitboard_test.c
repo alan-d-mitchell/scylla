@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "bitboard.h"
 
-
 void test_starting_position() {
     printf("--- Standard Starting Position ---\n");
 
