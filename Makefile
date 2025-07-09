@@ -20,7 +20,7 @@ TEST_DIR = tests
 SRCS = scylla.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c $(SRC_DIR)/movegen.c
 
 # Source files for the move generation test suite
-MOVEGEN_TEST_SRCS = $(TEST_DIR)/movegen_test.c $(SRC_DIR)/movegen.c $(SRC_DIR)/bitboard.c
+MOVEGEN_TEST_SRCS = $(TEST_DIR)/movegen_test.c $(SRC_DIR)/movegen.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c
 
 # --- Target Executables ---
 # UPDATED: Prepend the binary directory path to all targets

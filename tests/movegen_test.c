@@ -2,6 +2,8 @@
 // A tester file for testing the pre-computed attack table and masks
 
 #include <stdio.h>
+
+#include "board.h"
 #include "movegen.h"
 #include "defs.h"
 

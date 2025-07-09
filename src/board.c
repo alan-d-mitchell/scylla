@@ -1,4 +1,5 @@
 #include <stdlib.h> // For abs()
+#include <string.h> // For parse_fen
 
 #include "board.h"
 

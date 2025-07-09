@@ -2,6 +2,8 @@
 // A tester for file for bitboard representation of the board
 
 #include <stdio.h>
+
+#include "board.h"
 #include "bitboard.h"
 
 void test_starting_position() {

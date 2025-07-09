@@ -1,8 +1,9 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h> // Needed for the PRNG
+
+#include "board.h"
 #include "movegen.h"
-#include "defs.h"
 
 // --- Piece attack tables ---
 u64 pawn_attacks[2][64];
@@ -477,23 +478,23 @@ void generate_all_king_moves(const Board* board, MoveList* move_list) {
     }
 
     if (side == WHITE) {
-        if ((board->castle_rights & WK) && !((board->occupancies[2] >> (f1)) & 1) && !((board->occupancies[2] >> (g1)) & 1)) {
+        if ((board->castling_rights & WK) && !((board->occupancies[2] >> (f1)) & 1) && !((board->occupancies[2] >> (g1)) & 1)) {
             if (!is_square_attacked(e1, BLACK, board) && !is_square_attacked(f1, BLACK, board)) {
                 move_list->moves[move_list->count++] = (Move){ .from = e1, .to = g1, .piece = K, .is_castle = 1 };
             }
         }
-        if ((board->castle_rights & WQ) && !((board->occupancies[2] >> (d1)) & 1) && !((board->occupancies[2] >> (c1)) & 1) && !((board->occupancies[2] >> (b1)) & 1)) {
+        if ((board->castling_rights & WQ) && !((board->occupancies[2] >> (d1)) & 1) && !((board->occupancies[2] >> (c1)) & 1) && !((board->occupancies[2] >> (b1)) & 1)) {
             if (!is_square_attacked(e1, BLACK, board) && !is_square_attacked(d1, BLACK, board)) {
                 move_list->moves[move_list->count++] = (Move){ .from = e1, .to = c1, .piece = K, .is_castle = 1 };
             }
         }
     } else {
-        if ((board->castle_rights & BK) && !((board->occupancies[2] >> (f8)) & 1) && !((board->occupancies[2] >> (g8)) & 1)) {
+        if ((board->castling_rights & BK) && !((board->occupancies[2] >> (f8)) & 1) && !((board->occupancies[2] >> (g8)) & 1)) {
             if (!is_square_attacked(e8, WHITE, board) && !is_square_attacked(f8, WHITE, board)) {
                 move_list->moves[move_list->count++] = (Move){ .from = e8, .to = g8, .piece = k, .is_castle = 1 };
             }
         }
-        if ((board->castle_rights & BQ) && !((board->occupancies[2] >> (d8)) & 1) && !((board->occupancies[2] >> (c8)) & 1) && !((board->occupancies[2] >> (b8)) & 1)) {
+        if ((board->castling_rights & BQ) && !((board->occupancies[2] >> (d8)) & 1) && !((board->occupancies[2] >> (c8)) & 1) && !((board->occupancies[2] >> (b8)) & 1)) {
             if (!is_square_attacked(e8, WHITE, board) && !is_square_attacked(d8, WHITE, board)) {
                 move_list->moves[move_list->count++] = (Move){ .from = e8, .to = c8, .piece = k, .is_castle = 1 };
             }
