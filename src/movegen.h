@@ -15,6 +15,7 @@ extern u64 rook_relevant_blockers[64];
 
 // Initialization function
 void init_attack_tables();
+void init_magic_bishop_attacks();
 
 // Real move generation function
 int is_square_attacked(int square, int side, const Board* board);

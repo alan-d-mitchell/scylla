@@ -1,5 +1,7 @@
 // movegen.c
 
+#include <inttypes.h>
+#include <stdio.h>
 #include "movegen.h"
 #include "move.h"
 
@@ -167,8 +169,8 @@ void init_magic_bishop_attacks() {
 
         // Loop through all possible blocker configs for current square
         for (int i = 0; i < occupancy_indices; i++) {
-            u64 current_blockers = 0ULL;
             u64 temp_mask = blocker_mask;
+            u64 current_blockers = 0ULL;
 
             // Generate specific blocker permutation
             for (int bit_index = 0; bit_index < relevant_bits_count; bit_index++) {
@@ -245,17 +247,8 @@ int is_square_attacked(int square, int side, const Board* board) {
     // King attacks
     if ((king_attacks[square] & board->piece_bitboards[side == WHITE ? K : k])) return 1;
 
-    /* // Bishop and Queen attacks (temporary, slow method)
-    u64 bishop_attacks = generate_bishop_attacks_empty_board(square);
-    if (bishop_attacks & (board->piece_bitboards[side == WHITE ? B : b] | board->piece_bitboards[side == WHITE ? Q : q])) {
-        // This is a simplified check. A full check would trace rays.
-        // For now, we'll assume if a potential attacker is on the ray, it's a real attack.
-        // This is sufficient for castling checks where the in-between squares are empty.
-        return 1; 
-    }
-
     // Rook and Queen attacks (temporary, slow method)
-    u64 rook_attacks = generate_rook_attacks_empty_board(square);
+    /* u64 rook_attacks = generate_rook_attacks_empty_board(square);
     if (rook_attacks & (board->piece_bitboards[side == WHITE ? R : r] | board->piece_bitboards[side == WHITE ? Q : q])) {
         return 1;
     } */
@@ -386,7 +379,17 @@ void generate_all_bishop_moves(const Board* board, MoveList* move_list) {
         int from_square = __builtin_ctzll(bishops);
         u64 attacks = get_bishop_attacks(from_square, board->occupancies[2]);
         u64 valid_moves = attacks & ~friendly_pieces;
-        
+
+        // --- Start Full Debug ---
+        printf("\n---------------------\n");
+        printf("Checking Bishop at square: %d\n", from_square);
+        printf("Friendly Pieces Bitboard: %llu\n", friendly_pieces);
+        printf("All Pieces Bitboard (used for lookup): %llu\n", board->occupancies[2]);
+        printf("Generated Attacks Bitboard: %llu\n", attacks);
+        printf("Final Valid Moves Bitboard: %llu\n", valid_moves);
+        printf("---------------------\n");
+        // --- End Full Debug ---
+
         while (valid_moves) {
             int to_square = __builtin_ctzll(valid_moves);
             Move move = {
