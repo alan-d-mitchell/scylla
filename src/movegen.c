@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h> // Needed for the PRNG
 #include "movegen.h"
-#include "move.h"
+#include "defs.h"
 
 // --- Piece attack tables ---
 u64 pawn_attacks[2][64];

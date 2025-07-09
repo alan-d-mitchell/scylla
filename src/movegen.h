@@ -2,7 +2,7 @@
 #define MOVEGEN_H
 
 #include "bitboard.h"
-#include "move.h"
+#include "defs.h"
 
 // --- "Fancy" Magic Bitboard Struct ---
 typedef struct {

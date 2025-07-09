@@ -2,6 +2,7 @@
 #define BITBOARD_H
 
 #include <stdint.h>
+#include "board.h"
 
 // A more convenient type for our 64-bit bitboards.
 typedef uint64_t u64;
@@ -22,19 +23,6 @@ enum {
     a7, b7, c7, d7, e7, f7, g7, h7,
     a8, b8, c8, d8, e8, f8, g8, h8
 };
-
-// The main struct to hold all information about the chess position.
-typedef struct {
-    u64 piece_bitboards[12];
-    u64 occupancies[3]; // 0 for white, 1 for black, 2 for both
-
-    int side_to_move;
-    int enpassant_square; // -1 if no en passant square
-    int castle_rights;
-
-} Board;
-
-// --- Function Declarations (Prototypes) ---
 
 void print_bitboard(u64 bitboard);
 void parse_fen(Board* board, const char* fen);
