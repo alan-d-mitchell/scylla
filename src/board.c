@@ -35,7 +35,7 @@ static void add_piece(Board* board, int square, int piece) {
 }
 
 // --- Main Functions ---
-void makeMove(Board* board, Move move) {
+void make_move(Board* board, Move move) {
     board->history[board->ply].castling_rights = board->castling_rights;
     board->history[board->ply].enpassant_square = board->enpassant_square;
     board->history[board->ply].captured_piece = -1;
@@ -95,7 +95,7 @@ void makeMove(Board* board, Move move) {
     board->ply++;
 }
 
-void unamke_move(Board* board, Move move) {
+void unmake_move(Board* board, Move move) {
     board->ply--;
     UndoInfo undo = board->history[board->ply];
 

@@ -3,6 +3,7 @@
 
 #include "bitboard.h"
 #include "defs.h"
+#include "board.h"
 
 // --- "Fancy" Magic Bitboard Struct ---
 typedef struct {
@@ -36,5 +37,6 @@ void generate_all_bishop_moves(const Board* board, MoveList* move_list);
 void generate_all_rook_moves(const Board* board, MoveList* move_list);
 void generate_all_queen_moves(const Board* board, MoveList* move_list);
 void generate_all_king_moves(const Board* board, MoveList* move_list);
+void generate_all_moves(const Board* board, MoveList* move_list);
 
 #endif // MOVEGEN_H

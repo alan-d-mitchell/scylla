@@ -29,3 +29,14 @@ void print_bitboard(u64 bitboard) {
     }
     printf("   +----------------\n     a b c d e f g h\n\n");
 }
+
+int popcount(u64 bb) {
+    int count = 0;
+
+    while (bb) {
+        bb &= bb - 1;
+        count++;
+    }
+    
+    return count;
+}

@@ -3,6 +3,7 @@
 #include <stdlib.h> // Needed for the PRNG
 
 #include "board.h"
+#include "bitboard.h"
 #include "movegen.h"
 
 // --- Piece attack tables ---
@@ -53,18 +54,6 @@ u64 rand64_prng() {
 // Generates a random 64-bit number with few set bits using the 64-bit generator.
 u64 sparse_rand_u64() {
     return rand64_prng() & rand64_prng() & rand64_prng();
-}
-
-// Counts the number of set bits in a bitboard
-int popcount(u64 bb) {
-    int count = 0;
-
-    while (bb) {
-        bb &= bb - 1;
-        count++;
-    }
-
-    return count;
 }
 
 // --- Sliding Piece Helper Functions (used only during init) ---
@@ -500,6 +489,17 @@ void generate_all_king_moves(const Board* board, MoveList* move_list) {
             }
         }
     }
+}
+
+void generate_all_moves(const Board* board, MoveList* move_list) {
+    move_list->count = 0; // Reset move count
+    
+    generate_all_pawn_moves(board, move_list);
+    generate_all_knight_moves(board, move_list);
+    generate_all_bishop_moves(board, move_list);
+    generate_all_rook_moves(board, move_list);
+    generate_all_queen_moves(board, move_list);
+    generate_all_king_moves(board, move_list);
 }
 
 // --- Main Initialization Entry Point ---

@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include "defs.h"
+#include "bitboard.h"
 
 // --- Structs ---
 // Holds the information needed to undo a move
