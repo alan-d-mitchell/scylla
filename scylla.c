@@ -1,15 +1,12 @@
-// scylla.c 
-
-// Main file for the Scylla chess engine
-
-#include <stdio.h>
-
-#include "bitboard.h"
 #include "defs.h"
-#include "board.h"
 #include "movegen.h"
+#include "datagen.h" // Include the new data generation header
 
 int main() {
+    init_attack_tables();
+
+    // Generate training data for 10 games
+    generate_training_data(10);
 
     return 0;
 }

@@ -1,62 +1,74 @@
 # Makefile for the Scylla Chess Engine
 
 # --- Variables ---
-
-# Compiler to use
 CC = gcc
-
-# Compiler flags
-CFLAGS = -Wall -Wextra -O2 -g -Isrc
+# ADDED -Itests to the include paths
+CFLAGS = -Wall -Wextra -O2 -g -Isrc -Itests
 
 # --- Directories ---
-# NEW: Define the output directory for binaries
 BIN_DIR = bin
 SRC_DIR = src
 TEST_DIR = tests
 
-# --- File Paths ---
+# --- File Lists ---
 
-# Source files for the main program
-SRCS = scylla.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c $(SRC_DIR)/movegen.c
+# Source files for the main program (scylla)
+# ADDED perft.c to the main sources
+MAIN_SRCS = scylla.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c \
+            $(SRC_DIR)/movegen.c $(SRC_DIR)/evaluate.c $(SRC_DIR)/search.c \
+            $(SRC_DIR)/datagen.c $(SRC_DIR)/nn_encode.c
 
-# Source files for the move generation test suite
-MOVEGEN_TEST_SRCS = $(TEST_DIR)/movegen_test.c $(SRC_DIR)/movegen.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c
+# Source files for the PERFT test
+# CORRECTED: This now includes all dependencies for perft_test.c
+PERFT_TEST_SRCS = $(TEST_DIR)/perft_test.c $(SRC_DIR)/perft.c $(SRC_DIR)/movegen.c $(SRC_DIR)/board.c $(SRC_DIR)/bitboard.c
+
+# Source files for the original movegen test
+MOVEGEN_TEST_SRCS = $(TEST_DIR)/movegen_test.c $(SRC_DIR)/movegen.c $(SRC_DIR)/board.c $(SRC_DIR)/bitboard.c
+
 
 # --- Target Executables ---
-# UPDATED: Prepend the binary directory path to all targets
 TARGET = $(BIN_DIR)/scylla
+PERFT_TEST_TARGET = $(BIN_DIR)/run_perft_tests
 MOVEGEN_TEST_TARGET = $(BIN_DIR)/run_movegen_tests
 
 
-# --- Rules ---
+# --- Build Rules ---
 
-# The default rule, builds the main program
+# The default rule: 'make' or 'make all' builds the main program
 all: $(TARGET)
 
 # Rule to build the main program executable
-# UPDATED: It now depends on the bin directory existing
-$(TARGET): $(SRCS) | $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS)
+$(TARGET): $(MAIN_SRCS) | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
 
-# Rule to build the move generation test suite
-# UPDATED: It also depends on the bin directory existing
+# Rule to build the perft test executable
+$(PERFT_TEST_TARGET): $(PERFT_TEST_SRCS) | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# Rule to build the original movegen test executable
 $(MOVEGEN_TEST_TARGET): $(MOVEGEN_TEST_SRCS) | $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $(MOVEGEN_TEST_TARGET) $(MOVEGEN_TEST_SRCS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-# NEW: A rule to create the bin directory.
-# The '-p' flag means it won't error if the directory already exists.
-# This is an "order-only prerequisite", so it only runs if the directory is missing.
+
+# --- Utility Rules ---
+
+# Rule to create the bin directory if it doesn't exist
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-# Rule to run the tests
+# RENAMED: 'make perft_test' now builds and runs the perft test
+perft_test: $(PERFT_TEST_TARGET)
+	@echo "--- Running Perft Tests ---"
+	./$(PERFT_TEST_TARGET)
+
+# KEPT: 'make movegen_test' can still be used for the other test
 movegen_test: $(MOVEGEN_TEST_TARGET)
+	@echo "--- Running Movegen Tests ---"
 	./$(MOVEGEN_TEST_TARGET)
 
 # Rule to clean up all compiled files
-# UPDATED: Now removes the entire bin directory
 clean:
 	rm -rf $(BIN_DIR)
 
 # Phony targets are rules that don't produce a file with the same name.
-.PHONY: all movegen_test clean
+.PHONY: all perft_test movegen_test clean
