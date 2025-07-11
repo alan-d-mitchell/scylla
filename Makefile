@@ -15,8 +15,7 @@ TEST_DIR = tests
 # Source files for the main program (scylla)
 # ADDED perft.c to the main sources
 MAIN_SRCS = scylla.c $(SRC_DIR)/bitboard.c $(SRC_DIR)/board.c \
-            $(SRC_DIR)/movegen.c $(SRC_DIR)/evaluate.c $(SRC_DIR)/search.c \
-            $(SRC_DIR)/datagen.c $(SRC_DIR)/nn_encode.c
+            $(SRC_DIR)/movegen.c $(SRC_DIR)/evaluate.c $(SRC_DIR)/search.c
 
 # Source files for the PERFT test
 # CORRECTED: This now includes all dependencies for perft_test.c
