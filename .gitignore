@@ -1,3 +1,5 @@
 # Ignore directory for compiled binaries
 /bin/
 
+.txt
+/,vscode/
