@@ -1,0 +1,9 @@
+[package]
+name = "perft"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+board = { path = "../board/" }
+movegen = { path = "../movegen/" }
+types = { path = "../types/" }

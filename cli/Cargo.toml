@@ -1,0 +1,18 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.3", features = ["derive"] }
+board = { path = "../engine/board" }
+uci = { path = "../engine/uci" }
+types = { path = "../engine/types" }
+movegen = { path = "../engine/movegen/" }
+perft = { path = "../engine/perft/" }
+search = { path = "../engine/search" }
+tt = { path = "../engine/tt" }
+
+[[bin]]
+name = "scylla"
+path = "src/scylla.rs"

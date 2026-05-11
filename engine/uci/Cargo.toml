@@ -1,0 +1,13 @@
+[package]
+name = "uci"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+board = { path = "../board/" }
+types = { path = "../types/" }
+movegen = { path = "../movegen/" }
+perft = { path = "../perft/" }
+search = { path = "../search/" }
+tt = { path = "../tt/" }
+rand = "0.10.1"

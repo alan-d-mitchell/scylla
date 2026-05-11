@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "engine/board",
+    "engine/movegen",
+    "engine/search",
+    "engine/eval",
+    "engine/uci",
+    "engine/tt",
+    "engine/time",
+    "engine/perft",
+    "engine/types",
+    "cli"
+]

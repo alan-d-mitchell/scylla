@@ -1,0 +1,12 @@
+[package]
+name = "search"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+board = { path = "../board/" }
+types = { path = "../types/" }
+movegen = { path = "../movegen/" }
+eval = { path = "../eval/" }
+perft = { path = "../perft/" }
+tt = { path = "../tt/" }
